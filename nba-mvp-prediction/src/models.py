@@ -60,4 +60,45 @@ class GaussianNaiveBayes:
         pooled = np.sqrt((self.var_[0] + self.var_[1]) / 2)
         return np.abs(self.mean_[1] - self.mean_[0]) / pooled
 
+class LogisticRegressionNewton:
+    """Binary logistic regression fit with Newton-Raphson (IRLS).
 
+    Features are standardized internally. A small L2 penalty (l2) keeps the
+    Hessian invertible and stops weights diverging on (near-)separable data.
+    """
+
+    def __init__(self, l2: float = 1e-2, max_iter: int = 50, tol: float = 1e-8):
+        self.l2, self.max_iter, self.tol = l2, max_iter, tol
+
+    @staticmethod
+    def _sigmoid(z):
+        return 1.0 / (1.0 + np.exp(-np.clip(z, -500, 500)))
+
+    def fit(self, X, y):
+        X, y = np.asarray(X, float), np.asarray(y, float)
+        self.scaler_ = StandardScaler()
+        Xb = np.hstack([np.ones((len(X), 1)), self.scaler_.fit_transform(X)])
+        n, d = Xb.shape
+        reg = self.l2 * np.eye(d)
+        reg[0, 0] = 0.0  # do not penalize the bias
+        w = np.zeros(d)
+        self.n_iter_ = 0
+        for it in range(self.max_iter):
+            p = self._sigmoid(Xb @ w)
+            grad = Xb.T @ (p - y) / n + reg @ w
+            hess = (Xb.T * (p * (1 - p))) @ Xb / n + reg
+            step = np.linalg.solve(hess, grad)
+            w -= step
+            self.n_iter_ = it + 1
+            if np.linalg.norm(step) < self.tol:
+                break
+        self.w_ = w
+        return self
+
+    def predict_proba(self, X):
+        Xb = np.hstack([np.ones((len(X), 1)), self.scaler_.transform(np.asarray(X, float))])
+        p1 = self._sigmoid(Xb @ self.w_)
+        return np.column_stack([1 - p1, p1])
+
+    def predict(self, X):
+        return (self.predict_proba(X)[:, 1] >= 0.5).astype(int)
