@@ -1,5 +1,5 @@
 """
-ROC curve and AUC for Naive Bayes and Logistic Regression.
+ROC curve and AUC for all four classification models.
 
 Uses the same split as run_experiment.py (train before --test-start, test from --test-start).
 Run from the project folder:
@@ -16,7 +16,10 @@ import matplotlib.pyplot as plt
 import pandas as pd
 from sklearn.metrics import roc_curve, roc_auc_score
 
-from models import GaussianNaiveBayes, LogisticRegressionNewton
+from models import (
+    GaussianNaiveBayes, LogisticRegressionNewton,
+    RandomForestModel, GradientBoostingModel,
+)
 
 FEATURES = ["G", "MP", "FG%", "3P%", "FT%", "TRB", "AST", "STL", "BLK", "PTS"]
 DATA_PATH = Path("data/processed/finalists.csv")
@@ -37,14 +40,23 @@ def main():
 
     nb = GaussianNaiveBayes().fit(Xtr, ytr)
     lr = LogisticRegressionNewton(l2=args.l2).fit(Xtr, ytr)
+    rf = RandomForestModel().fit(Xtr, ytr)
+    gb = GradientBoostingModel().fit(Xtr, ytr)
     scores = {
         "Naive Bayes": nb.predict_proba(Xte)[:, 1],
         "Logistic Regression": lr.predict_proba(Xte)[:, 1],
+        "Random Forest": rf.predict_proba(Xte)[:, 1],
+        "Gradient Boosting": gb.predict_proba(Xte)[:, 1],
     }
 
     RESULTS_DIR.mkdir(exist_ok=True)
     plt.figure(figsize=(5.5, 5), dpi=150)
-    styles = {"Naive Bayes": ("#7a8699", "--"), "Logistic Regression": ("#1F3A5F", "-")}
+    styles = {
+        "Naive Bayes": ("#7a8699", "--"),
+        "Logistic Regression": ("#1F3A5F", "-"),
+        "Random Forest": ("#2a9d8f", "-."),
+        "Gradient Boosting": ("#e76f51", ":"),
+    }
     rows = []
     for name, p in scores.items():
         fpr, tpr, _ = roc_curve(yte, p)
