@@ -1,3 +1,0 @@
-model,threshold_acc,mvps_predicted_by_threshold,pure_acc,seasonal_winner_acc,seasonal_label_acc
-Naive Bayes,0.6333333333333333,7,0.5333333333333333,0.4,0.6
-Logistic Regression (Newton),0.5,25,0.6,0.7,0.8
