@@ -1,5 +1,5 @@
 """
-Phases 3-4 - Train both models, evaluate them, and predict the MVP per season.
+Phases 3-4 - Train four models, evaluate them, and predict the MVP per season.
 
 Usage:
     python src/run_experiment.py --test-start 2017
@@ -23,7 +23,10 @@ from sklearn.naive_bayes import GaussianNB
 from sklearn.preprocessing import StandardScaler as SkScaler
 from sklearn.pipeline import make_pipeline
 
-from models import GaussianNaiveBayes, LogisticRegressionNewton
+from models import (
+    GaussianNaiveBayes, LogisticRegressionNewton,
+    RandomForestModel, GradientBoostingModel,
+)
 
 FEATURES = ["G", "MP", "FG%", "3P%", "FT%", "TRB", "AST", "STL", "BLK", "PTS"]
 DATA_PATH = Path("data/processed/finalists.csv")
@@ -91,13 +94,20 @@ def main():
     # --- fit models ---
     nb = GaussianNaiveBayes().fit(Xtr, ytr)
     lr = LogisticRegressionNewton(l2=args.l2).fit(Xtr, ytr)
-    p_nb = nb.predict_proba(Xte)[:, 1]
-    p_lr = lr.predict_proba(Xte)[:, 1]
+    rf = RandomForestModel().fit(Xtr, ytr)
+    gb = GradientBoostingModel().fit(Xtr, ytr)
+    models = [
+        ("Naive Bayes", nb),
+        ("Logistic Regression (Newton)", lr),
+        ("Random Forest", rf),
+        ("Gradient Boosting", gb),
+    ]
+    scores = {name: model.predict_proba(Xte)[:, 1] for name, model in models}
+    p_nb, p_lr = scores["Naive Bayes"], scores["Logistic Regression (Newton)"]
     print(f"Logistic regression converged in {lr.n_iter_} Newton iterations")
 
     # --- metrics ---
-    res = pd.DataFrame([evaluate("Naive Bayes", test, yte, p_nb),
-                        evaluate("Logistic Regression (Newton)", test, yte, p_lr)])
+    res = pd.DataFrame([evaluate(name, test, yte, scores[name]) for name, _ in models])
     pd.options.display.float_format = "{:.3f}".format
     print("\n=== Model comparison (test set) ===")
     print(res.to_string(index=False))
@@ -124,10 +134,14 @@ def main():
             "actual": g.loc[g["winner"] == 1, "player"].iloc[0],
             "naive_bayes_pick": g.loc[g.index[np.argmax(p_nb[idx])], "player"],
             "logreg_pick": g.loc[g.index[np.argmax(p_lr[idx])], "player"],
+            "random_forest_pick": g.loc[g.index[np.argmax(scores["Random Forest"][idx])], "player"],
+            "gradient_boosting_pick": g.loc[g.index[np.argmax(scores["Gradient Boosting"][idx])], "player"],
         })
     pred = pd.DataFrame(rows)
     pred["nb_correct"] = pred["actual"] == pred["naive_bayes_pick"]
     pred["lr_correct"] = pred["actual"] == pred["logreg_pick"]
+    pred["rf_correct"] = pred["actual"] == pred["random_forest_pick"]
+    pred["gb_correct"] = pred["actual"] == pred["gradient_boosting_pick"]
     print("\n=== Predicted MVP per season ===")
     print(pred.to_string(index=False))
 
@@ -145,6 +159,8 @@ def main():
     pred.to_csv(RESULTS_DIR / "season_predictions.csv", index=False)
     out = test[["season", "player", "winner"]].copy()
     out["p_naive_bayes"], out["p_logreg"] = p_nb, p_lr
+    out["p_random_forest"] = scores["Random Forest"]
+    out["p_gradient_boosting"] = scores["Gradient Boosting"]
     out.to_csv(RESULTS_DIR / "player_probabilities.csv", index=False)
     print(f"\nSaved results to {RESULTS_DIR}/")
 
