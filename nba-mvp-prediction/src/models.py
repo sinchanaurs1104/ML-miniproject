@@ -1,8 +1,4 @@
-"""
-Models implemented from scratch with NumPy (as in the paper):
-  * GaussianNaiveBayes      - generative model, strong feature-independence assumption
-  * LogisticRegressionNewton - discriminative model trained with Newton's method
-"""
+
 import numpy as np
 
 
@@ -102,3 +98,55 @@ class LogisticRegressionNewton:
 
     def predict(self, X):
         return (self.predict_proba(X)[:, 1] >= 0.5).astype(int)
+
+
+class RandomForestModel:
+    """Random Forest classifier using scikit-learn."""
+
+    def __init__(self, n_estimators: int = 300, random_state: int = 42):
+        self.n_estimators = n_estimators
+        self.random_state = random_state
+
+    def fit(self, X, y):
+        from sklearn.ensemble import RandomForestClassifier
+        self.model_ = RandomForestClassifier(
+            n_estimators=self.n_estimators,
+            random_state=self.random_state,
+            class_weight="balanced",
+        )
+        self.model_.fit(np.asarray(X, float), np.asarray(y))
+        return self
+
+    def predict_proba(self, X):
+        return self.model_.predict_proba(np.asarray(X, float))
+
+    def predict(self, X):
+        return self.model_.predict(np.asarray(X, float))
+
+
+class GradientBoostingModel:
+    """Gradient Boosting classifier using scikit-learn."""
+
+    def __init__(self, n_estimators: int = 100, learning_rate: float = 0.05,
+                 max_depth: int = 2, random_state: int = 42):
+        self.n_estimators = n_estimators
+        self.learning_rate = learning_rate
+        self.max_depth = max_depth
+        self.random_state = random_state
+
+    def fit(self, X, y):
+        from sklearn.ensemble import GradientBoostingClassifier
+        self.model_ = GradientBoostingClassifier(
+            n_estimators=self.n_estimators,
+            learning_rate=self.learning_rate,
+            max_depth=self.max_depth,
+            random_state=self.random_state,
+        )
+        self.model_.fit(np.asarray(X, float), np.asarray(y))
+        return self
+
+    def predict_proba(self, X):
+        return self.model_.predict_proba(np.asarray(X, float))
+
+    def predict(self, X):
+        return self.model_.predict(X)
