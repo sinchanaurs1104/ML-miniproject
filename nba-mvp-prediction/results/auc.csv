@@ -1,0 +1,5 @@
+model,auc
+Naive Bayes,0.54
+Logistic Regression,0.6499999999999999
+Random Forest,0.625
+Gradient Boosting,0.5975

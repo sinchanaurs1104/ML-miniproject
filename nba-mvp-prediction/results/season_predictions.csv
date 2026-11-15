@@ -1,0 +1,11 @@
+season,actual,naive_bayes_pick,logreg_pick,random_forest_pick,gradient_boosting_pick,nb_correct,lr_correct,rf_correct,gb_correct
+2016,Stephen Curry,Stephen Curry,Stephen Curry,Stephen Curry,Kawhi Leonard,True,True,True,False
+2017,Russell Westbrook,Kawhi Leonard,Russell Westbrook,James Harden,Kawhi Leonard,False,True,False,False
+2018,James Harden,James Harden,James Harden,LeBron James,James Harden,True,True,False,True
+2019,Giannis Antetokounmpo,James Harden,James Harden,Paul George,Paul George,False,False,False,False
+2020,Giannis Antetokounmpo,James Harden,Giannis Antetokounmpo,Giannis Antetokounmpo,Giannis Antetokounmpo,False,True,True,True
+2021,Nikola Jokić,Stephen Curry,Nikola Jokić,Stephen Curry,Stephen Curry,False,True,False,False
+2022,Nikola Jokić,Joel Embiid,Nikola Jokić,Nikola Jokić,Nikola Jokić,False,True,True,True
+2023,Joel Embiid,Joel Embiid,Joel Embiid,Joel Embiid,Nikola Jokić,True,True,True,False
+2024,Nikola Jokić,Shai Gilgeous-Alexander,Luka Dončić,Luka Dončić,Luka Dončić,False,False,False,False
+2025,Shai Gilgeous-Alexander,Shai Gilgeous-Alexander,Nikola Jokić,Nikola Jokić,Nikola Jokić,True,False,False,False
